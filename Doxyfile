@@ -1,0 +1,17 @@
+PROJECT_NAME           = "Escultor 3D"
+PROJECT_BRIEF          = "Modelagem 3D por voxels em C++ e Qt"
+OUTPUT_DIRECTORY       = docs
+OUTPUT_LANGUAGE        = Brazilian
+INPUT                  = . README.md
+FILE_PATTERNS          = *.h *.cpp *.md
+EXCLUDE                = build docs
+RECURSIVE              = NO
+USE_MDFILE_AS_MAINPAGE = README.md
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+JAVADOC_AUTOBRIEF      = YES
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+INPUT_ENCODING         = UTF-8
+QUIET                  = YES

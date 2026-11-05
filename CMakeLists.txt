@@ -80,6 +80,25 @@ else()
     )
 endif()
 
+add_executable(Exemplo
+    exemplo.cpp
+    sculptor.h sculptor.cpp
+    figurageometrica.h figurageometrica.cpp
+    putvoxel.h putvoxel.cpp
+    cutvoxel.h cutvoxel.cpp
+    putbox.h putbox.cpp
+    cutbox.h cutbox.cpp
+    putsphere.h putsphere.cpp
+    cutsphere.h cutsphere.cpp
+    putellipsoid.h putellipsoid.cpp
+    cutellipsoid.h cutellipsoid.cpp
+    interpretador.h interpretador.cpp
+)
+
+target_compile_definitions(Exemplo PRIVATE
+    ESCULTOR_EXEMPLOS="${CMAKE_SOURCE_DIR}/exemplos"
+)
+
 include(GNUInstallDirs)
 
 install(TARGETS Escultor3D

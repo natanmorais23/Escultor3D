@@ -1,6 +1,7 @@
 
 #include "sculptor.h"
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <vector>
 
@@ -163,7 +164,7 @@ bool Sculptor::writeOFF(const char *filename) {
                                             x0,y0,z0, x1,y1,z1, x2,y2,z2, x3,y3,z3
                                         });
 
-        faces.push_back({base, base+1, base+2, base+3,
+        faces.push_back({base, base+3, base+2, base+1,
                          voxel.r, voxel.g, voxel.b, voxel.a});
     };
 
@@ -200,6 +201,8 @@ bool Sculptor::writeOFF(const char *filename) {
     for (size_t i = 0; i < vertices.size(); i += 3)
         file << vertices[i] << " " << vertices[i+1] << " "
              << vertices[i+2] << "\n";
+
+    file << std::fixed << std::setprecision(3);
 
     for (const Face &face : faces)
         file << "4 " << face.a << " " << face.b << " "

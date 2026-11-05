@@ -1,7 +1,9 @@
 #include "mainwindow.h"
 #include "sculptorview.h"
 #include "sculptor.h"
+#include "interpretador.h"
 #include <algorithm>
+#include <string>
 #include <cmath>
 
 #include <QColorDialog>
@@ -183,6 +185,11 @@ void MainWindow::configurarInterface()
             this, &MainWindow::aplicarForma);
     layoutPainel->addWidget(botaoAplicar);
 
+    auto *botaoAbrir = new QPushButton("Abrir arquivo de desenho", painel);
+    connect(botaoAbrir, &QPushButton::clicked,
+            this, &MainWindow::abrirArquivoDesenho);
+    layoutPainel->addWidget(botaoAbrir);
+
     // Carregar exemplo
     auto *botaoExemplo = new QPushButton("Carregar exemplo", painel);
     connect(botaoExemplo, &QPushButton::clicked,
@@ -207,12 +214,23 @@ void MainWindow::criarEscultura()
     int ny = tamanhoY->value();
     int nz = tamanhoZ->value();
 
-    Sculptor *novaEscultura = new Sculptor(nx, ny, nz);
+    trocarEscultura(new Sculptor(nx, ny, nz));
+}
 
+void MainWindow::trocarEscultura(Sculptor *nova)
+{
     delete escultor;
-    escultor = novaEscultura;
+    escultor = nova;
 
     visualizacao->setSculptor(escultor);
+
+    const int nx = escultor->getNx();
+    const int ny = escultor->getNy();
+    const int nz = escultor->getNz();
+
+    tamanhoX->setValue(nx);
+    tamanhoY->setValue(ny);
+    tamanhoZ->setValue(nz);
 
     posX->setRange(0, nx - 1);
     posY->setRange(0, ny - 1);
@@ -222,7 +240,39 @@ void MainWindow::criarEscultura()
     posY->setValue(ny / 2);
     posZ->setValue(nz / 2);
 
+    visualizacao->setPlanoZ(posZ->value());
+
+    const int maior = std::max({nx, ny, nz});
+    for (QSpinBox *campo : {dimX, dimY, dimZ}) {
+        campo->setRange(0, maior);
+    }
+
     visualizacao->atualizarEscultura();
+}
+
+void MainWindow::abrirArquivoDesenho()
+{
+    QString nome = QFileDialog::getOpenFileName(
+        this,
+        "Abrir arquivo de desenho",
+        QString(),
+        "Arquivos de desenho (*.txt);;Todos os arquivos (*)"
+        );
+
+    if (nome.isEmpty()) {
+        return;
+    }
+
+    std::string erro;
+    Sculptor *nova = criarEsculturaDeArquivo(
+        nome.toLocal8Bit().toStdString(), erro);
+
+    if (!nova) {
+        QMessageBox::critical(this, "Erro", QString::fromStdString(erro));
+        return;
+    }
+
+    trocarEscultura(nova);
 }
 
 void MainWindow::aplicarForma()

@@ -73,3 +73,7 @@ CMakeLists.txt.user*
 *.exe
 
 build/
+
+docs/
+
+exemplo_*.off

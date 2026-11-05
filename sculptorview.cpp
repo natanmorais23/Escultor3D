@@ -8,6 +8,34 @@
 #include <QtMath>
 #include <algorithm>
 
+namespace {
+
+struct Projecao {
+    double unidade;
+    double centroX;
+    double baseY;
+};
+
+Projecao calcularProjecao(int largura, int altura, int nx, int ny, int nz)
+{
+    const double topo = 60.0;
+    const double areaAltura = qMax(1.0, altura - topo);
+
+    const double unidade = qMin(
+                               largura / ((nx + ny) / 2.0),
+                               areaAltura / ((nx + ny) / 4.0 + nz / 2.0)
+                               ) * 0.85;
+
+    Projecao p;
+    p.unidade = unidade;
+    p.centroX = largura / 2.0 - (ny - nx) * unidade / 4.0;
+    p.baseY = topo + areaAltura / 2.0
+              - ((nx + ny) * unidade / 4.0 - nz * unidade / 2.0) / 2.0;
+    return p;
+}
+
+}
+
 SculptorView::SculptorView(Sculptor *escultura, QWidget *parent)
     : QWidget(parent),
     escultor(escultura),
@@ -43,6 +71,7 @@ void SculptorView::setPlanoZ(int z)
     }
 
     planoZ = qBound(0, z, escultor->getNz() - 1);
+    update();
 }
 
 void SculptorView::paintEvent(QPaintEvent *event)
@@ -66,27 +95,32 @@ void SculptorView::paintEvent(QPaintEvent *event)
         return;
     }
 
-    const double unidade = qMin(
-                               width() / double(nx + ny + 2),
-                               height() / double((nx + ny) * 0.5 + nz + 2)
-                               ) * 0.8;
-
-    const double centroX = width() / 2.0;
-    const double baseY = height() * 0.82;
+    const Projecao proj = calcularProjecao(width(), height(), nx, ny, nz);
+    const double unidade = proj.unidade;
+    const double centroX = proj.centroX;
+    const double baseY = proj.baseY;
 
     auto projetar = [&](double x, double y, double z) -> QPointF {
         return QPointF(
-            centroX + (x - y) * unidade / 2.0,
-            baseY - (x + y) * unidade / 4.0 - z * unidade
+            centroX + (y - x) * unidade / 2.0,
+            baseY + (x + y) * unidade / 4.0 - z * unidade / 2.0
             );
     };
 
     painter.setPen(QPen(QColor(70, 70, 70), 1));
 
     // Desenha os voxels visíveis.
-    for (int z = 0; z < nz; ++z) {
-        for (int x = 0; x < nx; ++x) {
-            for (int y = 0; y < ny; ++y) {
+    const int profundidadeMaxima = (nx - 1) + (ny - 1) + (nz - 1);
+
+    for (int s = 0; s <= profundidadeMaxima; ++s) {
+        for (int z = 0; z < nz; ++z) {
+            for (int x = 0; x < nx; ++x) {
+                const int y = s - x - z;
+
+                if (y < 0 || y >= ny) {
+                    continue;
+                }
+
                 auto voxel = escultor->getVoxel(x, y, z);
 
                 if (!voxel.show) {
@@ -122,7 +156,7 @@ void SculptorView::paintEvent(QPaintEvent *event)
                     painter.drawPolygon(topo);
                 }
 
-                // Face voltada para a frente/direita
+                // Face voltada para a frente/esquerda
                 bool faceX = (x + 1 >= nx) ||
                              !escultor->getVoxel(x + 1, y, z).show;
 
@@ -135,7 +169,7 @@ void SculptorView::paintEvent(QPaintEvent *event)
                     painter.drawPolygon(ladoX);
                 }
 
-                // Face voltada para a frente/esquerda
+                // Face voltada para a frente/direita
                 bool faceY = (y + 1 >= ny) ||
                              !escultor->getVoxel(x, y + 1, z).show;
 
@@ -190,27 +224,22 @@ bool SculptorView::telaParaVoxel(
         return false;
     }
 
-    const double unidade = qMin(
-                               width() / double(nx + ny + 2),
-                               height() / double((nx + ny) * 0.5 + nz + 2)
-                               ) * 0.8;
+    const Projecao proj = calcularProjecao(width(), height(), nx, ny, nz);
+    const double unidade = proj.unidade;
 
     if (unidade <= 0.0) {
         return false;
     }
 
-    const double centroX = width() / 2.0;
-    const double baseY = height() * 0.82;
-
     // Converte a posição do mouse para coordenadas do plano Z.
-    const double u = (pos.x() - centroX) / (unidade / 2.0);
+    const double u = (pos.x() - proj.centroX) / (unidade / 2.0);
 
     const double v =
-        (baseY - pos.y() - (planoZ + 0.5) * unidade)
+        (pos.y() - proj.baseY + (planoZ + 0.5) * unidade / 2.0)
         / (unidade / 4.0);
 
-    const double coordenadaX = (u + v) / 2.0;
-    const double coordenadaY = (v - u) / 2.0;
+    const double coordenadaX = (v - u) / 2.0;
+    const double coordenadaY = (v + u) / 2.0;
 
     x = qFloor(coordenadaX);
     y = qFloor(coordenadaY);

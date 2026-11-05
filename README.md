@@ -67,6 +67,54 @@ O projeto foi desenvolvido como atividade acadêmica, aplicando conceitos de pro
 5. Configure um kit de compilação compatível com Qt 6.
 6. Compile e execute a aplicação.
 
+O projeto gera dois executáveis:
+
+- **Escultor3D**: a interface gráfica.
+- **Exemplo**: programa de console que testa todos os métodos do `Sculptor`, todas as classes derivadas de `FiguraGeometrica` e a leitura de arquivos de desenho. Para escolher qual executar, use o seletor de alvo do Qt Creator (ícone de monitor, no canto inferior esquerdo).
+
+## Roteiro de uso da interface
+
+1. **Criar a matriz:** em *Dimensões da matriz*, informe os tamanhos X, Y e Z e clique em **Criar matriz**. A matriz começa vazia.
+2. **Escolher a ferramenta:** em *Forma*, selecione Voxel, Caixa, Esfera, Elipsoide ou uma das opções *Apagar*.
+3. **Escolher a cor:** clique em **Escolher cor**. As ferramentas de apagar ignoram a cor.
+4. **Ajustar os parâmetros:**
+   - *Posição X/Y/Z*: ponto onde a forma será aplicada. Na caixa, é o canto inicial; na esfera e no elipsoide, é o centro.
+   - *Raio / dimensão X*: raio da esfera, semieixo X do elipsoide ou tamanho da caixa em X.
+   - *Dimensão Y* e *Dimensão Z*: semieixos do elipsoide ou tamanho da caixa em Y e Z.
+5. **Desenhar com o mouse:** a *Posição Z* define o **plano de desenho**, mostrado no canto superior esquerdo da área de visualização. Clique ou arraste com o **botão esquerdo** sobre a vista: a forma escolhida é aplicada em cada voxel por onde o cursor passa. Para desenhar em outra altura, mude a *Posição Z*.
+6. **Aplicar pelos campos:** o botão **Aplicar forma** aplica a ferramenta exatamente nas coordenadas digitadas.
+7. **Abrir arquivo de desenho:** carrega um arquivo `.txt` (formato descrito abaixo) e substitui a escultura atual. Há um exemplo em [`exemplos/boneco_de_neve.txt`](exemplos/boneco_de_neve.txt).
+8. **Carregar exemplo:** desenha uma Pokébola na matriz atual.
+9. **Exportar OFF:** salva a escultura em um arquivo `.off`.
+
+## Formato do arquivo de desenho
+
+Uma instrução por linha. Linhas vazias ou iniciadas por `#` são ignoradas. A primeira instrução precisa ser `dim`. As cores vão de 0 a 1.
+
+```text
+dim nx ny nz
+putvoxel x y z r g b a
+cutvoxel x y z
+putbox x0 x1 y0 y1 z0 z1 r g b a
+cutbox x0 x1 y0 y1 z0 z1
+putsphere xc yc zc raio r g b a
+cutsphere xc yc zc raio
+putellipsoid xc yc zc rx ry rz r g b a
+cutellipsoid xc yc zc rx ry rz
+```
+
+## Programa-exemplo
+
+O executável **Exemplo** roda três etapas e imprime `[OK]` ou `[FALHA]` para cada verificação:
+
+1. Usa diretamente todos os métodos do `Sculptor` e gera `exemplo_sculptor.off`.
+2. Usa as 8 classes concretas por meio de um vetor de `FiguraGeometrica` (polimorfismo) e gera `exemplo_figuras.off`.
+3. Lê `exemplos/boneco_de_neve.txt` (ou o arquivo passado como argumento) e gera `exemplo_arquivo.off`.
+
+Os arquivos `.off` são gravados na pasta de build e podem ser abertos no MeshLab.
+
+> **Observação:** a classe `Sculptor` e o struct `Voxel` mantêm os membros e métodos originais. Foram acrescentados somente os métodos de leitura `getNx()`, `getNy()`, `getNz()` e `getVoxel()`, que a interface gráfica e o programa-exemplo usam para desenhar e conferir a escultura.
+
 ## Exportação de modelos 3D
 
 A aplicação permite exportar esculturas para o formato OFF, que representa vértices e faces de objetos tridimensionais.
@@ -88,7 +136,7 @@ Após instalar o Doxygen, execute na pasta que contém o arquivo `Doxyfile`:
 doxygen Doxyfile
 ```
 
-A documentação HTML será gerada no diretório configurado no arquivo `Doxyfile`. Abra o arquivo `index.html` gerado para consultar as classes, os métodos e suas descrições.
+A documentação HTML será gerada em `docs/html/`. Abra o arquivo `docs/html/index.html` para consultar as classes, os métodos e suas descrições.
 
 ## Estrutura do projeto
 

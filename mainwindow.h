@@ -22,6 +22,7 @@ private slots:
     void aplicarForma();
     void exportarOFF();
     void carregarExemplo();
+    void abrirArquivoDesenho();
 
 private:
     Sculptor *escultor;
@@ -45,6 +46,7 @@ private:
     QSpinBox *tamanhoZ;
 
     void criarEscultura();
+    void trocarEscultura(Sculptor *nova);
 };
 
 #endif
